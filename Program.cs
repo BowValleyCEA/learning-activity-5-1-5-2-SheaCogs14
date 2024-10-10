@@ -106,31 +106,77 @@ class Program
             switch (choice)
             {
                 case VideoSelection.Rent:
-                    Console.WriteLine("Please input the customers name");
+                    Console.WriteLine("Please input the customer's name:");
                     string userName = Console.ReadLine();
                     User? user = store.Users.FirstOrDefault(u => u.Name == userName);
 
-                    if (user != null)
+                    if (user == null)
                     {
-                        Console.WriteLine("Below is a list of movies available");
-                        foreach (var video in store.SearchVideos(isAvailable: true))
+                        Console.WriteLine("No user found. Do you want to create an account? (yes/no)");
+                        string response = Console.ReadLine().ToLower();
+                        if (response == "yes")
                         {
-                            Console.WriteLine($"{video.VideoId}: {video.Title} ({video.Genre}) - {video.Duration} minutes");
+                            store.AddUser(userName);
+                            user = store.Users.FirstOrDefault(u => u.Name == userName);
+                            Console.WriteLine($"User {userName} was added!");
                         }
-                        Console.WriteLine("Please entre the video ID");
-                        
+                        else
+                        {
+                            break;
+                        }
+                    }
 
+                    Console.WriteLine("Below is a list of available movies:");
+                    foreach (var video in store.SearchVideos(isAvailable: true))
+                    {
+                        Console.WriteLine($"{video.VideoId}: {video.Title} ({video.Genre}) - {video.Duration} minutes");
+                    }
 
+                    Console.WriteLine("Please enter the video ID:");
+                    if (int.TryParse(Console.ReadLine(), out int videoId))
+                    {
+                        store.RentVideo(user, videoId);
                     }
                     else
                     {
-                        Console.WriteLine("No user found!");
-                      
+                        Console.WriteLine("Invalid video ID.");
                     }
                     break;
 
                 case VideoSelection.List:
-                    Console.WriteLine("List of movies available will display");
+                    Console.WriteLine("Available movies:");
+                    foreach (var video in store.SearchVideos(isAvailable: true))
+                    {
+                        Console.WriteLine($"{video.VideoId}: {video.Title} ({video.Genre}) - {video.Duration} minutes");
+                    }
+                    break;
+
+                case VideoSelection.Return:
+                    Console.WriteLine("Please input the customer's name:");
+                    userName = Console.ReadLine();
+                    user = store.Users.FirstOrDefault(u => u.Name == userName);
+
+                    if (user == null)
+                    {
+                        Console.WriteLine("No user found.");
+                        break;  
+                    }
+
+                    Console.WriteLine("Below is a list of currently rented videos:");
+                    foreach (var video in user.CurrentRentals)
+                    {
+                        Console.WriteLine($"{video.VideoId}: {video.Title} ({video.Genre}) - {video.Duration} minutes");
+                    }
+
+                    Console.WriteLine("Please enter the video ID to return:");
+                    if (int.TryParse(Console.ReadLine(), out videoId))
+                    {
+                        store.ReturnVideo(user, videoId);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid video ID.");
+                    }
                     break;
 
                 case VideoSelection.Exit:
@@ -145,8 +191,8 @@ class Program
         int selection = 0;
         while (!validSelection)
         {
-            Console.WriteLine("Would you like to:\n\t 1: Rent a Video\n\t 2: See the list of videos for rent\n\t 3: Exit the program?");
-            if (int.TryParse(Console.ReadLine(), out selection) && selection >= 1 && selection <= 3)
+            Console.WriteLine("Would you like to:\n\t 1: Rent a Video\n\t 2: See the list of videos for rent\n\t 3: Return movie \n\t 4: Exit the program?");
+            if (int.TryParse(Console.ReadLine(), out selection) && selection >= 1 && selection <= 4)
                 validSelection = true;
         }
 
@@ -155,7 +201,7 @@ class Program
 
     enum VideoSelection
     {
-        Rent = 1, List = 2, Exit = 3
+        Rent = 1, List = 2, Return = 3, Exit = 4
     }
 }
 
